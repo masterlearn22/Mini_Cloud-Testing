@@ -9,111 +9,92 @@ Simulasi ekosistem cloud skala kecil menggunakan Docker sebagai media provisioni
 ```
 mini-cloud/
 ├── docker-compose.yml        ← Orkestrator utama
-├── demo.sh                   ← Script demo untuk video
 ├── app/
-│   ├── Dockerfile            ← Image worker node
+│   ├── Dockerfile            ← Image worker node (Node.js)
 │   ├── package.json
-│   └── server.js             ← Aplikasi Node.js (API + Redis cache)
+│   └── server.js             ← Aplikasi Backend + Redis cache
 ├── nginx/
 │   └── nginx.conf            ← Load Balancer + CDN config
 └── cdn-static/
     ├── index.html            ← Dashboard CDN
-    └── assets/
-        ├── style.css
-        └── app.js
+    └── assets/               ← Static Files (style.css, app.js)
 ```
 
 ---
 
 ## Prasyarat
 
-- Docker Desktop (Windows/Mac) atau Docker Engine (Linux)
-- Docker Compose v2
-- Port 80 dan 8081 kosong
+- Docker Desktop (Windows/Mac)
+- Port 80 dan **8081** kosong (Port 8080 sering bentrok dengan PHP/Lainnya)
 
 ---
 
 ## Cara Menjalankan
 
-### 1. Build dan jalankan semua layanan
-```bash
+### 1. Jalankan semua layanan
+```powershell
 docker compose up --build -d
 ```
 
-### 2. Verifikasi semua container berjalan
-```bash
+### 2. Verifikasi container
+```powershell
 docker compose ps
 ```
 
 ---
 
-## Demonstrasi Per Skenario
+## 🚀 Panduan Pengujian (Khusus PowerShell)
 
-### Skenario 1 — Resource Provisioning (IaaS)
-```bash
-# Lihat semua container (worker nodes = compute instances)
+Gunakan perintah di bawah ini untuk rekaman OBS Anda (Terminal Windows).
+
+### Skenario 1 — IaaS Resource Provisioning
+Melihat kontainer sebagai "Virtual Instance" yang disediakan.
+```powershell
+# Cek semua instance yang berjalan
 docker compose ps
 
-# Lihat penggunaan resource real-time
-docker stats
+# Cek penggunaan RAM/CPU tiap instance
+docker stats --no-stream
 ```
-**Teori:** Setiap `docker compose up` adalah analogi provisioning VM di cloud provider.
-
----
 
 ### Skenario 2 — High Availability & Load Balancing
-```bash
-# Bash
-for i in {1..10}; do curl -s http://localhost/ | python3 -c "import sys,json; print(json.load(sys.stdin)['node'])"; done
-curl -sI http://localhost/ | grep X-Upstream-Node
-
-# PowerShell
+Membuktikan traffic dibagi rata ke beberapa node.
+```powershell
+# 1. Tes Distribusi Beban (Loop 10x)
 1..10 | ForEach-Object { (curl.exe -s http://localhost/ | ConvertFrom-Json).node }
+
+# 2. Cek Header Upstream
 curl.exe -sI http://localhost/ | findstr X-Upstream-Node
-```
 
-**Fault Tolerance:**
-```bash
-# Matikan node 1
+# 3. Simulasi Fault Tolerance (Matikan Node 1)
 docker compose stop web-node1
-
-# Kirim request — tetap terlayani oleh node 2
-curl http://localhost/
-
-# Hidupkan kembali
-docker compose start web-node1
+curl.exe -s http://localhost/  # Tetap jalan lewat Node 2
+docker compose start web-node1 # Hidupkan lagi
 ```
-**Teori:** `proxy_next_upstream` di Nginx memastikan request diteruskan ke node sehat.
-
----
 
 ### Skenario 3 — Elasticity (Horizontal Scaling)
-```bash
-# Jalankan node 3 (tanpa downtime)
+Menambah kapasitas tanpa mematikan sistem.
+```powershell
+# 1. Jalankan Node 3
 docker compose --profile scale up web-node3 -d
 
-# Uncomment baris "server web-node3:3000" di nginx/nginx.conf
-# Kemudian reload Nginx tanpa restart
+# 2. RELOAD Nginx (Setelah uncomment baris 38 di nginx.conf)
 docker compose exec nginx nginx -s reload
 
-# Bash
-for i in {1..9}; do curl -s http://localhost/ | python3 -c "import sys,json; print(json.load(sys.stdin)['node'])"; done
-
-# PowerShell
+# 3. Verifikasi Node 3 ikut bekerja
 1..9 | ForEach-Object { (curl.exe -s http://localhost/ | ConvertFrom-Json).node }
 ```
-**Teori:** Horizontal scaling = tambah instance, vs Vertical scaling = tambah CPU/RAM pada satu instance.
 
----
-
-### Skenario 4 — Caching & CDN
-```bash
-# Bash
-time curl -s http://localhost/ > /dev/null
-curl -sI http://localhost:8081/static/style.css
-
-# PowerShell
+### Skenario 4 — Caching & CDN Layer
+Mempercepat akses file dan data.
+```powershell
+# 1. Tes Kecepatan Caching (Bandingkan waktu eksekusi)
 Measure-Command { curl.exe -s http://localhost/ }
+
+# 2. Cek Data di Redis Cache
+docker exec redis-cache redis-cli KEYS "*"
+
+# 3. Tes CDN (Mengakses file statis di Port 8081)
 curl.exe -sI http://localhost:8081/static/style.css
 ```
 
@@ -123,27 +104,13 @@ curl.exe -sI http://localhost:8081/static/style.css
 
 | URL | Deskripsi |
 |-----|-----------|
-| `http://localhost/` | API utama (melalui Load Balancer) |
-| `http://localhost/health` | Health check node |
-| `http://localhost/info` | Info detail node |
-| `http://localhost/lb-status` | Status Load Balancer |
-| `http://localhost:8081/` | CDN Dashboard (static) |
-
----
-
-## Pembuktian Prinsip IDEAL
-
-| Prinsip | Implementasi |
-|---------|-------------|
-| **Isolated** | Setiap container berjalan di namespace Linux terpisah (`cloud-net` network) |
-| **Democratic** | Satu entry point (`localhost:80`), semua user diperlakukan sama |
-| **Elastic** | Node 3 ditambah/dihapus tanpa mematikan node 1 dan 2 |
-| **Adaptive** | `proxy_next_upstream` di Nginx redirect otomatis saat node mati |
-| **Less-coupled** | App, LB, Cache adalah service terpisah — update satu tidak memengaruhi lain |
+| `http://localhost/` | API Utama (Load Balancer) |
+| `http://localhost:8081/` | CDN Dashboard |
+| `http://localhost:8081/static/style.css` | File Statis CDN |
 
 ---
 
 ## Mematikan Semua Layanan
-```bash
+```powershell
 docker compose down -v
 ```
