@@ -3,6 +3,7 @@
 # Konsep IaaS: provisioning OS + runtime secara instan via image
 FROM node:18-alpine
 
+
 # Label metadata kontainer (Less-coupled principle)
 LABEL maintainer="Mini-Cloud UTS"
 LABEL description="Worker Node - Simulasi IaaS Cloud Computing"

@@ -29,7 +29,7 @@ mini-cloud/
 
 - Docker Desktop (Windows/Mac) atau Docker Engine (Linux)
 - Docker Compose v2
-- Port 80 dan 8080 kosong
+- Port 80 dan 8081 kosong
 
 ---
 
@@ -63,11 +63,13 @@ docker stats
 
 ### Skenario 2 — High Availability & Load Balancing
 ```bash
-# Kirim banyak request, perhatikan node yang menjawab bergantian
+# Bash
 for i in {1..10}; do curl -s http://localhost/ | python3 -c "import sys,json; print(json.load(sys.stdin)['node'])"; done
-
-# Cek header untuk melihat upstream node
 curl -sI http://localhost/ | grep X-Upstream-Node
+
+# PowerShell
+1..10 | ForEach-Object { (curl.exe -s http://localhost/ | ConvertFrom-Json).node }
+curl.exe -sI http://localhost/ | findstr X-Upstream-Node
 ```
 
 **Fault Tolerance:**
@@ -94,8 +96,11 @@ docker compose --profile scale up web-node3 -d
 # Kemudian reload Nginx tanpa restart
 docker compose exec nginx nginx -s reload
 
-# Verifikasi node 3 menerima traffic
+# Bash
 for i in {1..9}; do curl -s http://localhost/ | python3 -c "import sys,json; print(json.load(sys.stdin)['node'])"; done
+
+# PowerShell
+1..9 | ForEach-Object { (curl.exe -s http://localhost/ | ConvertFrom-Json).node }
 ```
 **Teori:** Horizontal scaling = tambah instance, vs Vertical scaling = tambah CPU/RAM pada satu instance.
 
@@ -103,17 +108,13 @@ for i in {1..9}; do curl -s http://localhost/ | python3 -c "import sys,json; pri
 
 ### Skenario 4 — Caching & CDN
 ```bash
-# Request pertama: CACHE MISS (backend diproses ~100ms)
+# Bash
 time curl -s http://localhost/ > /dev/null
+curl -sI http://localhost:8081/static/style.css
 
-# Request kedua: CACHE HIT (Redis langsung reply)
-time curl -s http://localhost/ > /dev/null
-
-# Lihat isi Redis
-docker exec redis-cache redis-cli KEYS "*"
-
-# CDN Layer: konten statis tanpa menyentuh backend
-curl -sI http://localhost:8080/static/style.css
+# PowerShell
+Measure-Command { curl.exe -s http://localhost/ }
+curl.exe -sI http://localhost:8081/static/style.css
 ```
 
 ---
@@ -126,7 +127,7 @@ curl -sI http://localhost:8080/static/style.css
 | `http://localhost/health` | Health check node |
 | `http://localhost/info` | Info detail node |
 | `http://localhost/lb-status` | Status Load Balancer |
-| `http://localhost:8080/` | CDN Dashboard (static) |
+| `http://localhost:8081/` | CDN Dashboard (static) |
 
 ---
 

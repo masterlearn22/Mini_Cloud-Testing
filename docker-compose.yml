@@ -16,7 +16,6 @@
 #   docker compose logs -f
 # ============================================================
 
-version: "3.9"
 
 # ── Jaringan virtual internal (Isolated principle) ────────────
 networks:
@@ -24,7 +23,7 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/24
+        - subnet: 172.25.0.0/24
 
 # ── Volume persisten untuk Redis ──────────────────────────────
 volumes:
@@ -119,11 +118,10 @@ services:
     container_name: nginx-lb
     ports:
       - "80:80"       # Load Balancer (API)
-      - "8080:8080"   # CDN Layer (static content)
+      - "8081:8080"   # CDN Layer (static content)
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./cdn-static:/usr/share/nginx/html:ro
-      - ./cdn-static/assets:/usr/share/nginx/html/static:ro
     networks:
       - cloud-net
     depends_on:
