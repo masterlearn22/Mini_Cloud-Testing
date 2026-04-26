@@ -1,0 +1,17 @@
+/* static/style.css — Di-serve oleh CDN Layer (Nginx port 8080) */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 2rem; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { font-size: 2rem; color: #38bdf8; margin-bottom: .5rem; }
+.subtitle { color: #94a3b8; margin-bottom: 1.5rem; }
+.badge { display: inline-block; background: #1e40af; color: #bfdbfe; padding: .25rem .75rem; border-radius: 999px; font-size: .8rem; margin-bottom: 2rem; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.25rem; }
+.card h2 { color: #7dd3fc; margin-bottom: .5rem; font-size: 1rem; }
+.card p { color: #94a3b8; font-size: .9rem; line-height: 1.6; }
+.btn { display: inline-block; margin-top: .75rem; background: #0ea5e9; color: #fff; padding: .4rem .9rem; border-radius: 6px; text-decoration: none; font-size: .85rem; }
+.info { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.5rem; }
+.info h3 { color: #a78bfa; margin-bottom: 1rem; }
+.info ul { list-style: none; display: flex; flex-direction: column; gap: .5rem; }
+.info li { color: #cbd5e1; font-size: .9rem; padding-left: 1rem; border-left: 2px solid #4f46e5; }
+.info strong { color: #e0e7ff; }

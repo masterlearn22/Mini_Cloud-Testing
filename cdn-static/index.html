@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini-Cloud UTS — CDN Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Mini-Cloud Environment</h1>
+    <p class="subtitle">Simulasi CDN Layer — Konten statis ini di-serve langsung oleh Nginx tanpa menyentuh backend</p>
+
+    <div class="badge">X-Cache-Layer: CDN-Simulation</div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Load Balancer</h2>
+        <p>Nginx mendistribusikan request secara round-robin ke worker nodes. Jika satu node mati, traffic otomatis diarahkan ke node lain.</p>
+        <a href="http://localhost" class="btn">Akses API →</a>
+      </div>
+      <div class="card">
+        <h2>Worker Nodes</h2>
+        <p>Node 1 dan Node 2 berjalan paralel sebagai instance independen. Horizontal scaling menambah Node 3 tanpa downtime.</p>
+      </div>
+      <div class="card">
+        <h2>Redis Cache</h2>
+        <p>Setiap request API dicek ke Redis terlebih dahulu. Cache hit menghindari pemrosesan ulang di backend (TTL: 30 detik).</p>
+      </div>
+    </div>
+
+    <div class="info">
+      <h3>Prinsip IDEAL Cloud Computing</h3>
+      <ul>
+        <li><strong>Isolated</strong> — Setiap container berjalan dalam namespace terisolasi</li>
+        <li><strong>Democratic</strong> — Semua user mengakses melalui satu entry point (LB port 80)</li>
+        <li><strong>Elastic</strong> — Jumlah worker dapat ditambah/dikurangi sesuai beban</li>
+        <li><strong>Adaptive</strong> — Sistem merespons kegagalan node secara otomatis (fault tolerance)</li>
+        <li><strong>Less-coupled</strong> — Setiap layanan independen, dapat di-update tanpa mematikan keseluruhan sistem</li>
+      </ul>
+    </div>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
